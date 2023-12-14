@@ -1,28 +1,17 @@
-def compute_builder_utilities(winners, builder_utilities):
-    # Loop through each searcher bundle
-    for searcher, ofas_won in winners.items():
-        for ofa in ofas_won:
-            # Increment the utility of the builder for every bundle searcher gives him
-            builder_utilities[1] += 1
-
-def win(num_builders, num_searchers, num_ofas, searcher_valuations):
-    # Initialize dictionaries to store the utilities of each searcher and builder respectively
-    searcher_utilities = {}
-    builder_utilities = {}
-
-    # Initialize a dictionary to store the OFAs won by each searcher
-    winners = {}
-
+def initialize(num_builders, num_searchers, builder_utilities, searcher_utilities):
     # Initialize all builders to have a utility of 0
     for builder in range(1, num_builders + 1):
         if builder not in builder_utilities:
             builder_utilities[builder] = 0
-
-    # Intialize all searchers to have a utility of 0
+    
+    #Intialize all searchers to have a utility of 0
     for searcher in range(1, num_searchers + 1):
         if searcher not in searcher_utilities:
             searcher_utilities[searcher] = 0
+    
+    return searcher_utilities, builder_utilities
 
+def compute_searcher_utilities(winners, searcher_valuations, searcher_utilities):
     # Iterate through each OFA and find the searcher with the highest valuation
     for ofa, ofa_bids in searcher_valuations.items():
         # Find the highest bid
@@ -52,7 +41,23 @@ def win(num_builders, num_searchers, num_ofas, searcher_valuations):
         searcher_utilities[winning_searcher] += utility
         
         print(f"The Searcher {winning_searcher} wins OFA {ofa} with a utility of {utility}")
+    return winners, searcher_utilities
 
-    compute_builder_utilities(winners=winners, builder_utilities=builder_utilities)
+def compute_builder_utilities(winners, builder_valuations, builder_utilities):
+    # Loop through each winning Searcher's bundle
+    for searcher, ofas_won in winners.items():
+        searcher -= 1
+        for ofa in ofas_won:
+            # Increment the utility of the builder for every bundle searcher gives him
+            builder_utilities[1] += builder_valuations[1][searcher]
+    return builder_utilities
+
+def utility_computation(num_builders, num_searchers, num_ofas, builder_valuations, searcher_valuations):
+    # Initialize dictionaries to store the utilities of each searcher and builder respectively
+    searcher_utilities, builder_utilities = initialize(num_builders,num_searchers, {}, {})
+
+    winners, searcher_utilities = compute_searcher_utilities({}, searcher_valuations, searcher_utilities)
+
+    builder_utilities = compute_builder_utilities(winners, builder_valuations, builder_utilities)
     
     return searcher_utilities, builder_utilities
